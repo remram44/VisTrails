@@ -812,20 +812,7 @@ class Null(Module):
 
 ##############################################################################
 
-class PythonSource(NotCacheable, Module):
-    """PythonSource is a Module that executes an arbitrary piece of
-    Python code.
-    
-    It is especially useful for one-off pieces of 'glue' in a
-    pipeline.
-
-    If you want a PythonSource execution to fail, call
-    fail(error_message).
-
-    If you want a PythonSource execution to be cached, call
-    cache_this().
-    """
-
+class CodeRunnerMixin(object):
     def run_code(self, code_str,
                  use_input=False,
                  use_output=False):
@@ -860,6 +847,22 @@ class PythonSource(NotCacheable, Module):
             for k in outputDict.iterkeys():
                 if locals_[k] != None:
                     self.setResult(k, locals_[k])
+
+##############################################################################
+
+class PythonSource(CodeRunnerMixin, NotCacheable, Module):
+    """PythonSource is a Module that executes an arbitrary piece of
+    Python code.
+
+    It is especially useful for one-off pieces of 'glue' in a
+    pipeline.
+
+    If you want a PythonSource execution to fail, call
+    fail(error_message).
+
+    If you want a PythonSource execution to be cached, call
+    cache_this().
+    """
 
     def compute(self):
         s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
