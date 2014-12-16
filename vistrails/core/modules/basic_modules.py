@@ -850,7 +850,7 @@ class CodeRunnerMixin(object):
         exec code_str in locals_, locals_
         if use_output:
             for k in self.output_ports_order:
-                if locals_.get(k) != None:
+                if locals_.get(k) is not None:
                     self.setResult(k, locals_[k])
 
 ##############################################################################
