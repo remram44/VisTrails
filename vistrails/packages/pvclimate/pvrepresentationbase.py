@@ -23,8 +23,8 @@ class PVRepresentationBase(Module):
         #// @todo: Check with Ben if this is the right way to do it:        
         import api            
         controller = api.get_current_controller()
-        module = PlotPipelineHelper.find_module_by_name(controller.current_pipeline, module_name)            
-        action = controller.update_functions(module, functions)        
+        module = PlotPipelineHelper.find_module_by_name(controller.current_pipeline, module_name)
+        action = controller.update_functions(module, functions)  # bad
         if action is not None:
             window = get_vistrails_application().uvcdatWindow
             window.get_current_project_controller().cell_was_changed(action)

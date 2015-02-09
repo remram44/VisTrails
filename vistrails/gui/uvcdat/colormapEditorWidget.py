@@ -152,7 +152,7 @@ class QColormapEditor(QtGui.QColorDialog):
         self.controller = api.get_current_controller()
         self.version = self.controller.current_version
         self.pipeline = self.controller.vistrail.getPipeline(self.version)
-        self.plots = CDMSPipelineHelper.find_plot_modules(self.pipeline)
+        self.plots = CDMSPipelineHelper.find_plot_modules(self.pipeline)  # bad
 
         # set up plot combo box
         #        self.plotCb.clear()

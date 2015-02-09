@@ -74,7 +74,7 @@ class Variable(Module):
     def from_module(module):
         from core.uvcdat.plot_pipeline_helper import PlotPipelineHelper
         var = Variable()
-        var.filename = PlotPipelineHelper.get_value_from_function_as_str(module, 'file')
+        var.filename = PlotPipelineHelper.get_value_from_function_as_str(module, 'file')  # bad
         var.file = var.filename
         var.url = PlotPipelineHelper.get_value_from_function(module, 'url')
         var.name = PlotPipelineHelper.get_value_from_function(module, 'name')

@@ -103,7 +103,7 @@ class PVClimatePipelineHelper(PlotPipelineHelper):
             #// Is there a better way? I looked around and found none
             import re
             plotUsableName = re.sub(r'\s', '', plot_gm)
-            plot_module = PlotPipelineHelper.find_module_by_name(pipeline, plotUsableName)
+            plot_module = PlotPipelineHelper.find_module_by_name(pipeline, plotUsableName)  # probably bad
             if plot_module is not None:
                 continue
 
@@ -170,7 +170,7 @@ class PVClimatePipelineHelper(PlotPipelineHelper):
     def find_plot_modules(pipeline):
         #// Find plot modules in the order they appear in the Cell
         res = []
-        cell = PlotPipelineHelper.find_module_by_name(pipeline, 'PVGenericCell')
+        cell = PlotPipelineHelper.find_module_by_name(pipeline, 'PVGenericCell')  # bad
         plots = pipeline.get_inputPort_modules(cell.id, 'representation')
         for plot in plots:
             res.append(pipeline.modules[plot])

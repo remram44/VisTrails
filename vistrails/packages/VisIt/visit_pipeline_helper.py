@@ -30,7 +30,7 @@ class VisItPipelineHelper(PlotPipelineHelper):
         pipeline = controller.vt_controller.vistrail.getPipeline(version)
         #print pipeline
         #plots = VisItPipelineHelper.find_plot_modules(pipeline)
-        cell = CDMSPipelineHelper.find_modules_by_type(pipeline,[visitcell.VisItCell])
+        cell = CDMSPipelineHelper.find_modules_by_type(pipeline,[visitcell.VisItCell])  # bad
         vars = CDMSPipelineHelper.find_modules_by_type(pipeline,
                                                        [CDMSVariable,
                                                         CDMSVariableOperation])

@@ -109,7 +109,7 @@ class PVVariable(Variable):
         from core.uvcdat.plot_pipeline_helper import PlotPipelineHelper
         var = Variable.from_module(module)
         readerParameters = PlotPipelineHelper.get_value_from_function_as_str(module,
-                                                                             'readerParameters')
+                                                                             'readerParameters')  # bad
         var.set_reader_parameters(readerParameters)
 
         return var
