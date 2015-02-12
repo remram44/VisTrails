@@ -1441,7 +1441,7 @@ class QCDATWidget(QVTKWidget):
                     self.canvas.canvas.updateVCSsegments(self.canvas.mode) # pass down self and mode to _vcs module
                     self.canvas.flush() # update the canvas by processing all the X events
 
-            kwargs[ 'cell_coordinates' ] = self.cell_coordinates
+            #kwargs[ 'cell_coordinates' ] = self.cell_coordinates  # RR0212: I'm dropping that
             self.canvas.plot(cgm,*args,**kwargs)
         doInteractorStyle = False
         if doInteractorStyle:
