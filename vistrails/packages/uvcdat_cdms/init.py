@@ -1441,14 +1441,9 @@ class QCDATWidget(QVTKWidget):
                     #see vcs.Canvas.setcolorcell
                     self.canvas.canvas.updateVCSsegments(self.canvas.mode) # pass down self and mode to _vcs module
                     self.canvas.flush() # update the canvas by processing all the X events
-            
-#            try:
+
             kwargs[ 'cell_coordinates' ] = self.cell_coordinates
             self.canvas.plot(cgm,*args,**kwargs)
-#             except Exception, e:
-#                 print "cgm=",cgm,"args=",args,"kwargs=",kwargs
-#                 spreadsheetWindow.setUpdatesEnabled(True)
-#                 raise e
         doInteractorStyle = False
         if doInteractorStyle:
           vtkRenderers = self.canvas.backend.renWin.GetRenderers()
