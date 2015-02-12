@@ -1353,17 +1353,6 @@ class QCDATWidget(QVTKWidget):
 
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.setUpdatesEnabled(False)
-        # Set the canvas
-        # if inputPorts[0] is not None:
-        #     self.canvas = inputPorts[0]
-        #self.window = self.canvas
-        if self.canvas is None:
-            try:
-                self.createCanvas()
-            except ModuleError, e:
-                spreadsheetWindow.setUpdatesEnabled(True)
-                raise e
-        #print self.windowId, self.canvas
             
         #get reparented window if it's there
         #if self.windowId in reparentedVCSWindows:
@@ -1447,7 +1436,7 @@ class QCDATWidget(QVTKWidget):
                     
                 if plot.colorMap.colorCells is not None:
                     for (n,r,g,b) in plot.colorMap.colorCells:
-                        self.canvas.canvas.setcolorcell(n,r,g,b);
+                        self.canvas.canvas.setcolorcell(n,r,g,b)
                     #see vcs.Canvas.setcolorcell
                     self.canvas.canvas.updateVCSsegments(self.canvas.mode) # pass down self and mode to _vcs module
                     self.canvas.flush() # update the canvas by processing all the X events
