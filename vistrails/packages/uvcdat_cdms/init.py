@@ -1368,6 +1368,21 @@ class QCDATWidget(QVTKWidget):
 
         self.createCanvas()
 
+        if not plots:
+            self.canvas.clear()
+            if not fromToolBar:
+                self.extraDimsNames = []
+                self.extraDimsIndex=[]
+                self.extraDimsLen = 0
+                self.inputPorts = inputPorts
+                if hasattr(self.parent(),"toolBar"):
+                    t = self.parent().toolBar
+                    if hasattr(t,"dimSelector"):
+                        while (t.dimSelector.count()>0):
+                            t.dimSelector.removeItem(0)
+                        t.dimSelector.addItems(self.extraDimsNames)
+            return
+
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.setUpdatesEnabled(False)
             
@@ -1553,7 +1568,7 @@ class QCDATWidgetToolBar(QCellToolBar):
             pass
         
         if use_vcs_toolbar:
-            if cell.inputPorts[0][0].var.var.rank()>2:  # no inputPorts here
+            if cell.inputPorts[0][0].var.var.rank()>2:
                 self.prevAction=QCDATWidgetPrev(self)
                 self.prevAction.setEnabled(False)
                 self.appendAction(self.prevAction)
@@ -1646,9 +1661,10 @@ class QCDATWidgetPrev(QtGui.QAction):
 class QDimsSlider(QtGui.QWidget):
     def updateLabels(self,val=None,fromDimension=False):
         selectedDim = str(self.parent().parent().parent().dimSelector.currentText())
-        for a in self.V.getAxisList():
-            if a.id == selectedDim:
-                break
+        if self.V is not None:  # RR0212: V is None because widget doesn't have list of plots
+            for a in self.V.getAxisList():
+                if a.id == selectedDim:
+                    break
         index = self.slider.value()
         if fromDimension:
             index=0
@@ -1672,8 +1688,11 @@ class QDimsSlider(QtGui.QWidget):
     def __init__(self,parent):
         super(QDimsSlider,self).__init__(parent)
         toolBar = parent.parent().parent()
-        self.cell = toolBar.parent().getCell(toolBar.parent().parentRow,toolBar.parent().parentCol) 
-        self.V = self.cell.inputPorts[0][0].var.var
+        self.cell = toolBar.parent().getCell(toolBar.parent().parentRow,toolBar.parent().parentCol)
+        if self.cell.inputPorts[0]:
+            self.V = self.cell.inputPorts[0][0].var.var  # RR0212: bad
+        else:
+            self.V = None
         l = QtGui.QVBoxLayout()
         self.current = QtGui.QLabel("Date")
         l.addWidget(self.current)
