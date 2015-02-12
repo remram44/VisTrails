@@ -1358,7 +1358,6 @@ class CDMSCell(SpreadsheetCell):
     @classmethod
     def createCanvas(cls):
         canvas = vcs.init(backend=cls.GetRenderWindow())
-        #canvas.ParameterChanged.connect(self.processParameterChange)  # RR0212: move to widget
         ren = vtk.vtkRenderer()
         r, g, b = canvas.backgroundcolor
         ren.SetBackground(r/255., g/255., b/255.)
@@ -1485,6 +1484,7 @@ class QCDATWidget(QVTKWidget):
                     t.dimSelector.removeItem(0)
                 t.dimSelector.addItems(self.extraDimsNames)
 
+        self.canvas.ParameterChanged.connect(self.processParameterChange)
         self.SetRenderWindow(self.canvas.backend.renWin)
 
         doInteractorStyle = False
