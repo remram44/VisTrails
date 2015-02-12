@@ -969,7 +969,7 @@ class ProjectController(QtCore.QObject):
         if not reuse_workflow:
             self.reset_workflow(cell)
         else:
-            helper_remove = helper.remove_variables_from_pipeline_action
+            helper_remove = helper.remove_variables_from_pipeline_action  # RR0212: broken; method might not exist
             action = helper_remove(self.vt_controller,
                                    cell.current_parent_version)
             if action:

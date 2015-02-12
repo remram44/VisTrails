@@ -63,14 +63,14 @@ class CDMSPipelineHelper(PlotPipelineHelper):
     @staticmethod
     def show_configuration_widget(controller, version, plot_objs=[]):
         pipeline = controller.vt_controller.vistrail.getPipeline(version)
-        plots = CDMSPipelineHelper.find_plot_modules(pipeline)
-        vars = CDMSPipelineHelper.find_modules_by_type(pipeline, 
+        plots = CDMSPipelineHelper.find_plot_modules(pipeline)  # RR0212: plot modules
+        vars = CDMSPipelineHelper.find_modules_by_type(pipeline,  # RR0212: variables & operations
                                                        [CDMSVariable,
                                                         CDMSVariableOperation])
         return CDMSPlotWidget(controller,version,plots,vars)
     
     @staticmethod
-    def find_plot_modules(pipeline):
+    def find_plot_modules(pipeline):  # RR0212: bad plan
         #find plot modules in the order they appear in the Cell
         res = []
         cell = CDMSPipelineHelper.find_module_by_name(pipeline, 'CDMSCell')
@@ -81,7 +81,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return res
                 
     @staticmethod
-    def find_variables_connected_to_plot_module(controller, pipeline, plot_id):
+    def find_variables_connected_to_plot_module(controller, pipeline, plot_id):  # RR0212: bad plan
         conns1 = controller.get_connections_to(pipeline, [plot_id], 
                                               port_name="variable")
         conns2 = controller.get_connections_to(pipeline, [plot_id], 
@@ -92,7 +92,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return varlist
     
     @staticmethod
-    def find_variables_connected_to_operation_module(controller, pipeline, op_id):
+    def find_variables_connected_to_operation_module(controller, pipeline, op_id):  # RR0212: bad plan
         module = pipeline.modules[op_id]
         vars = []
         unary = CDMSPipelineHelper.find_variables_connected_to_unary_operation_module
@@ -107,7 +107,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return vars
     
     @staticmethod
-    def find_variables_connected_to_unary_operation_module(controller, pipeline, op_id):
+    def find_variables_connected_to_unary_operation_module(controller, pipeline, op_id):  # RR0212: bad plan
         conns = controller.get_connections_to( pipeline, [op_id], port_name="input_var")       
         vars = []
         for conn in conns:
@@ -115,7 +115,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return vars
     
     @staticmethod
-    def find_variables_connected_to_binary_operation_module(controller, pipeline, op_id):
+    def find_variables_connected_to_binary_operation_module(controller, pipeline, op_id):  # RR0212: bad plan
         conns = controller.get_connections_to(pipeline, [op_id], 
                                               port_name="input_var1")
         conns.extend(controller.get_connections_to(pipeline, [op_id], 
@@ -127,7 +127,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return vars
     
     @staticmethod
-    def find_variables_connected_to_n_ary_operation_module(controller, pipeline, op_id):
+    def find_variables_connected_to_n_ary_operation_module(controller, pipeline, op_id):  # RR0212: bad plan
         conns = controller.get_connections_to(pipeline, [op_id], 
                                               port_name="input_vars")        
         vars = []
@@ -136,7 +136,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return vars
     
     @staticmethod
-    def create_plot_module(controller, plot_type, plot_gm):
+    def create_plot_module(controller, plot_type, plot_gm):  # RR0212: bad plan
         reg = get_module_registry()
         ops = []
         plot_descriptor = reg.get_descriptor_by_name('gov.llnl.uvcdat.cdms', 
@@ -155,7 +155,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return plot_module
     
     @staticmethod
-    def get_input_port_name(num_op_vars, var_num):
+    def get_input_port_name(num_op_vars, var_num):  # RR0212: useless?
         if num_op_vars == 1:
             return 'input_var'
         elif num_op_vars == 2:
@@ -164,7 +164,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
             return 'input_vars'
 
     @staticmethod
-    def get_plot_input_port_name(num_plot_vars, var_num):
+    def get_plot_input_port_name(num_plot_vars, var_num):  # RR0212: useless?
         if num_plot_vars == 1:
             return 'variable'
         elif num_plot_vars == 2:
@@ -177,7 +177,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
             return 'variable'
 
     @staticmethod
-    def get_output_port_name(module):
+    def get_output_port_name(module):  # RR0212: looks broken
         for port in module._output_ports:
             if port[0] in [ 'self', 'output_var' ]:
                 return port[0]
@@ -185,7 +185,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
 
     @staticmethod
     def build_variable_operation_pipeline(controller, version, vars, txt, st, 
-                                          varname, varop=None):
+                                          varname, varop=None):  # RR0212: TODO: write PythonSource
         controller.change_selected_version(version)
         axes = None
         axesOperations = None
@@ -253,7 +253,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return (op_module, actions)
                 
     @staticmethod
-    def connect_variables_to_plots(controller, var_modules, plot_obj, plot_module):
+    def connect_variables_to_plots(controller, var_modules, plot_obj, plot_module):  # RR0212: useless
         ops = []
         new_conns = []
         for i, varName in enumerate(plot_obj.variables):
@@ -271,7 +271,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
 
     @staticmethod
     def create_actions_from_plot_obj(controller, var_modules, cell_module, 
-                                      plot_obj, added_vars, order=None):
+                                      plot_obj, added_vars, order=None):  # RR0212: useless
         reg = get_module_registry()
         ops = []
 
@@ -314,7 +314,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
     
     @staticmethod
     def build_plot_pipeline_action(controller, version, var_modules, plot_objs, 
-                                   row, col):
+                                   row, col):  # RR0212: TODO: rewrite
         """build_plot_pipeline_action(controller: VistrailController,
                                       version: long,
                                       var_modules: [list of modules],
@@ -372,7 +372,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return action
     
     @staticmethod
-    def remove_variables_from_pipeline_action(controller, version):
+    def remove_variables_from_pipeline_action(controller, version):  # RR0212: not part of interface! Remove for now?
         pipeline = controller.vistrail.getPipeline(version)
         
         variable_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSVariable,
@@ -385,7 +385,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         
     @staticmethod
     def update_plot_pipeline_action(controller, version, var_modules, plot_objs,
-                                    row, col):
+                                    row, col):  # RR0212: TODO: rewrite
         """update_plot_pipeline_action(controller: VistrailController,
                                       version: long,
                                       var_modules: [list of modules],
@@ -455,7 +455,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return action
     
     @staticmethod
-    def rebuild_pipeline_action(proj_controller, version, plot_modules):
+    def rebuild_pipeline_action(proj_controller, version, plot_modules):  # RR0212: <- update_pipeline <- configure_done
         #first clear pipeline except for cell and location modules
         controller = proj_controller.vt_controller
         pipeline = controller.vistrail.getPipeline(version)
@@ -550,6 +550,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
             [('Row', [str(row+1)]), ('Column', [str(col+1)])])
         for f in functions:
             loc_module.add_function(f)
+        # RR0212: wrong, should restore original CellLocation's connections instead
+        # RR0212... works in this case because always exactly one cell module
         loc_conn = controller.create_connection(loc_module, 'self',
                                                 cell_modules[0], 'Location')
         ops = [('add', loc_module),
@@ -563,14 +565,15 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         
         # Update project controller cell information
         pipeline = controller.vistrail.getPipeline(action.id)
-        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSPlot,CDMS3DPlot])
+        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSPlot, CDMS3DPlot])
         
         cell.clear()
         for pl_module in plot_modules:
             gmName = CDMSPipelineHelper.get_graphics_method_name_from_module(pl_module)
             ptype = CDMSPipelineHelper.get_plot_type_from_module(pl_module)
             cell.add_plot(get_plot_manager().new_plot(plot_type, ptype, gmName))
-            
+
+        # RR0212: this won't work, need to enumerate differently
         for plot in plot_modules:
             vars = CDMSPipelineHelper.find_variables_connected_to_plot_module(controller, 
                                                                        pipeline, 
@@ -621,7 +624,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
             gmName = CDMSPipelineHelper.get_graphics_method_name_from_module(pl_module)
             ptype = CDMSPipelineHelper.get_plot_type_from_module(pl_module)
             cell.add_plot(get_plot_manager().new_plot(plot_type, ptype, gmName))
-            
+
+        # RR0212: this won't work, need to enumerate differently
         for plot in plot_modules:
             vars = CDMSPipelineHelper.find_variables_connected_to_plot_module(controller, 
                                                                        pipeline, 
@@ -630,7 +634,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
                 cell.add_variable(CDMSPipelineHelper.get_variable_name_from_module(var))
 
     @classmethod
-    def build_python_script_from_pipeline( klass, controller, version, plot_objs=[]):
+    def build_python_script_from_pipeline( klass, controller, version, plot_objs=[]):  # RR0212: TODO: rewrite
         """build_python_script_from_pipeline(controller, version, plot_objs) -> str
            
            This will build the corresponding python script for the pipeline
@@ -732,7 +736,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return text
     
     @staticmethod    
-    def get_graphics_method_name_from_module(module):
+    def get_graphics_method_name_from_module(module):  # RR0212: TODO: rewrite
         result = CDMSPipelineHelper.get_value_from_function(module, 
                                                               "graphicsMethodName")
         if result == None:
@@ -741,12 +745,12 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return result
     
     @staticmethod    
-    def get_plot_type_from_module(module):
+    def get_plot_type_from_module(module):  # RR0212: TODO: rewrite
         desc = module.module_descriptor.module
         return desc.plot_type
     
     @staticmethod    
-    def get_template_name_from_module(module):
+    def get_template_name_from_module(module):  # RR0212: TODO: I don't know what templates are
         result = CDMSPipelineHelper.get_value_from_function(module, 
                                                               "template")
         if result == None:
@@ -755,7 +759,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return result
     
     @staticmethod
-    def get_variable_name_from_module(module):
+    def get_variable_name_from_module(module):  # RR0212: TODO: rewrite
         desc = module.module_descriptor.module
         if issubclass(desc, CDMSVariable):
             result = CDMSPipelineHelper.get_value_from_function(module, "name")
