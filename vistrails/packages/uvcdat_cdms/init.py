@@ -1485,7 +1485,7 @@ class QCDATWidget(QVTKWidget):
                 t.dimSelector.addItems(self.extraDimsNames)
 
         self.canvas.ParameterChanged.connect(self.processParameterChange)
-        self.SetRenderWindow(self.canvas.backend.renWin)
+        #self.SetRenderWindow(self.canvas.backend.renWin)  # RR0212: embedding doesn't seem to work
 
         doInteractorStyle = False
         if doInteractorStyle:
