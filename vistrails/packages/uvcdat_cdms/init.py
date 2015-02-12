@@ -1389,7 +1389,7 @@ class CDMSCell(SpreadsheetCell):
 
         self.cellWidget = self.displayAndWait(
                 QCDATWidget,
-                (canvas, extraDimsNames, extraDimsIndex, extraDimsLen))
+                (plots, canvas, extraDimsNames, extraDimsIndex, extraDimsLen))
 
 class QCDATWidget(QVTKWidget):
     """ QCDATWidget is the spreadsheet cell widget where the plots are displayed.
@@ -1475,7 +1475,7 @@ class QCDATWidget(QVTKWidget):
 
     def updateContents(self, inputPorts):
         """ Get the vcs canvas, setup the cell's layout, and plot """
-        self.canvas, self.extraDimsNames, self.extraDimsIndex, self.extraDimsLen = inputPorts
+        plots, self.canvas, self.extraDimsNames, self.extraDimsIndex, self.extraDimsLen = inputPorts
 
         self.inputPorts = inputPorts
         if hasattr(self.parent(),"toolBar"):
