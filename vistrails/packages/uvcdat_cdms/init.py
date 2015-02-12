@@ -1268,6 +1268,13 @@ class CDMSColorMap(Module):
         for f in functions:
             module.add_function(f)
         return module
+
+def prepExtraDims(var, extraDimsNames, extraDimsIndex):
+    k={}
+    for d,i in zip(extraDimsNames,extraDimsIndex):
+        if d in var.getAxisIds():
+            k[d]=slice(i,None)
+    return k
      
 class CDMSCell(SpreadsheetCell):
     _input_ports = expand_port_specs([("plot", "CDMSPlot")])
@@ -1337,14 +1344,6 @@ class QCDATWidget(QVTKWidget):
         except:
           pass
         i.AddObserver("ModifiedEvent",self.canvas.backend.configureEvent)
-
-
-    def prepExtraDims(self,var):
-        k={}
-        for d,i in zip(self.extraDimsNames,self.extraDimsIndex):
-            if d in var.getAxisIds():
-                k[d]=slice(i,None)
-        return k
     
     def updateContents(self, inputPorts, fromToolBar=False):
         """ Get the vcs canvas, setup the cell's layout, and plot """
@@ -1385,11 +1384,11 @@ class QCDATWidget(QVTKWidget):
         for plot in plots:
             cmd = "#Now plotting\nvcs_canvas[%i].plot(" % (self.canvas.canvasid()-1)
             # print "PLOT TYPE:", plot.plot_type
-            k1 = self.prepExtraDims(plot.var.var)
+            k1 = prepExtraDims(plot.var.var, self.extraDimsNames, self.extraDimsIndex)
             args = [plot.var.var(**k1)]
             cmd+="%s(**%s), " % (args[0].id,str(k1))
             if hasattr(plot, "var2") and plot.var2 is not None:
-                k2 = self.prepExtraDims(plot.var2.var)
+                k2 = prepExtraDims(plot.var2.var, self.extraDimsNames, self.extraDimsIndex)
                 args.append(plot.var2.var(**k2))
                 cmd+="%s(**%s), " % (args[-1].id,str(k2))
             args.append(plot.template)
