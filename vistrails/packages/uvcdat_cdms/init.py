@@ -1476,6 +1476,15 @@ class QCDATWidget(QVTKWidget):
     def updateContents(self, inputPorts):
         """ Get the vcs canvas, setup the cell's layout, and plot """
         self.canvas, self.extraDimsNames, self.extraDimsIndex, self.extraDimsLen = inputPorts
+
+        self.inputPorts = inputPorts
+        if hasattr(self.parent(),"toolBar"):
+            t = self.parent().toolBar
+            if hasattr(t,"dimSelector"):
+                while (t.dimSelector.count()>0):
+                    t.dimSelector.removeItem(0)
+                t.dimSelector.addItems(self.extraDimsNames)
+
         self.SetRenderWindow(self.canvas.backend.renWin)
 
         doInteractorStyle = False
