@@ -319,15 +319,6 @@ class MatplotlibPipelineHelper(CDMSPipelineHelper):
                     len(pipeline.aliases) == len(pl.workflow.aliases)):
                     return pl
         return None
-
-    @staticmethod
-    def create_plot_objs_from_pipeline(pipeline, plot_type):
-        plot_objs = []
-        helper = MatplotlibPipelineHelper
-        # get to from cell?
-        for plot_module in helper.find_plot_modules(pipeline):
-            plot_objs.append(get_plot_manager().get_plot('Matplotlib', plot_module.name[3:]))
-        return plot_objs
     
     @staticmethod
     def find_plot_modules(pipeline):

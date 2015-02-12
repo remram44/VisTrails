@@ -42,7 +42,6 @@ class CDMSPipelineHelper(PlotPipelineHelper):
 
     @classmethod
     def getCellLoc( klass, pipeline ):
-        cell_module = klass.find_module_by_name(pipeline, 'CDMSCell')
         cell_location = klass.find_module_by_name(pipeline, 'CellLocation')
 
         row = 0
@@ -135,17 +134,6 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         for conn in conns:
             vars.append(pipeline.modules[conn.source.moduleId])
         return vars
-
-    @staticmethod
-    def create_plot_objs_from_pipeline(pipeline, plot_type):
-        plot_objs = []
-        helper = CDMSPipelineHelper
-        # get to from cell?
-        for pl_module in helper.find_plot_modules(pipeline):
-            gmName = helper.get_graphics_method_name_from_module(pl_module)
-            ptype = helper.get_plot_type_from_module(pl_module)
-            plot_objs.append(get_plot_manager().new_plot(plot_type, ptype, gmName))
-        return plot_objs
     
     @staticmethod
     def create_plot_module(controller, plot_type, plot_gm):
@@ -344,9 +332,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         """
         # FIXME want to make sure that nothing changes if var_module
         # or plot_module do not change
-        def_controller = api.get_current_controller()
         if controller is None:
-            controller = def_controller
+            controller = api.get_current_controller()
             version = 0L
         added_vars = []
         reg = get_module_registry()
@@ -641,140 +628,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
                                                                        plot.id)
             for var in vars:
                 cell.add_variable(CDMSPipelineHelper.get_variable_name_from_module(var))
-            
-#    @staticmethod
-#    def update_pipeline_action(controller, version, plot_modules):
-#        pipeline = controller.vistrail.getPipeline(version)
-#        pip_plots =  CDMSPipelineHelper.find_plot_modules(pipeline)
-#        cell = CDMSPipelineHelper.find_module_by_name(pipeline, 'CDMSCell')
-#        
-#        pip_plot_map = {}
-#        plot_map = {}
-#        
-#        to_be_added = []
-#        for pm in pip_plots:
-#            pip_plot_map[pm.id] = pm
-#        for m in plot_modules:
-#            plot_map[m.id] = m
-#            if m.id not in pip_plot_map:
-#                to_be_added.append(m)
-#        to_be_removed = []
-#        for pm in pip_plots:
-#            if pm.id not in plot_map:
-#                to_be_removed.append(pm.id)
-#        if len(to_be_removed) > 0:
-#            action = controller.delete_module_list(to_be_removed)
-#            version = action.id
-#            pipeline = controller.vistrail.getPipeline(version)
-#            
-#        
-#        ops = []
-#        conns_to = controller.get_connections_to(pipeline,[cell.id],"plot")    
-#        for conn in conns_to:
-#            if conn.source.moduleId not in to_be_removed:
-#                ops.append(('delete',conn.id))
-#        for m in to_be_added:
-#            ops.append(('add', m))
-#        for m in plot_modules:
-#            conn = controller.create_connection(m, 'self',
-#                                                cell, 'plot')
-#            ops.append('add',conn)
-#        
-#        action = core.db.action.create_action(ops)
-#        controller.change_selected_version(version)
-#        controller.add_new_action(action)
-#        controller.perform_action(action)
 
-#        return action
-    @staticmethod
-    def change_parameters( parmRecList, controller=None ):
-        import api
-        """change_parameters(
-                            parmRecList: [ ( function_name: str, param_list: list(str) ) ] 
-                            controller: VistrailController,
-                            ) -> None
-        Note: param_list is a list of strings no matter what the parameter type!
-        """   
-        proj_controller = api.get_current_project_controller()
-        (sheetName, row, col) = proj_controller.get_current_cell_info()
-        
-        if controller is None:
-            if proj_controller == None:
-                controller = api.get_current_controller()
-                controller.select_latest_version()
-                current_version = controller.current_version
-            else:
-                cell = proj_controller.sheet_map[ sheetName ][ (row, col) ]
-                current_version = cell.current_parent_version 
-                controller =  proj_controller.vt_controller 
-                controller.change_selected_version( current_version )
-
-        
-        pipeline = controller.vistrail.getPipeline(current_version)
-        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSPlot,CDMS3DPlot])
-        if len( plot_modules ):
-                 
-    #
-    #         try:
-    # #            ( sheetName, cell_address ) = DV3DPipelineHelper.getCellCoordinates( self.moduleID )
-    #             proj_controller = self.get_current_project_controller()
-    #             if proj_controller == None:
-    #                 controller = self.get_current_controller()
-    #             else:
-    #                 if ( sheetName <> proj_controller.current_sheetName ): return
-    #                 controller =  proj_controller.vt_controller 
-    #                 if self.update_proj_controller:
-    #                     pcoords =list( proj_controller.current_cell_coords ) if proj_controller.current_cell_coords else None
-    #                     if not pcoords or ( pcoords[0] <> cell_address[0] ) or ( pcoords[1] <> cell_address[1] ):
-    #                         proj_controller.current_cell_changed(  sheetName, cell_address[0], cell_address[1]  )
-    #                     else: pcoords = None 
-    #                 cell = proj_controller.sheet_map[ sheetName ][ cell_address ]
-    #                 current_version = cell.current_parent_version 
-    #                 controller.change_selected_version( current_version )
-    #             pipeline = controller.vistrail.getPipeline( current_version )
-    #         except Exception, err:
-    #             print>>sys.stderr, "Error getting current pipeline: %s " % str( err )
-    #             pipeline = controller.current_pipeline
-    #             proj_controller = None
-    #             current_version = controller.current_version
-    #             cell_address = ( None, None )
-    #             
-    #         try:
-    #             module = pipeline.modules[self.moduleID] 
-    #         except KeyError:
-    #             print>>sys.stderr, "Error changing parameter in module %d (%s), parm: %s: Module not in current controller pipeline." % ( self.moduleID, self.__class__.__name__, str(parmRecList) )  
-    #             return
-            try:
-                constit_values = []
-                module = plot_modules[0]
-                config_list = []
-                op_list = []
-    #            print "Module[%d]: Persist Parameter: %s, controller: %x " % ( self.moduleID, str(parmRecList), id(controller) )
-                for parmRec in parmRecList: 
-                    try:
-                        function = parmRec[0]
-                        print "Persist parameter: %s-> %s " % ( function, str(parmRec[1]) )
-                        values = [ parmRec[1] ]  # .strip('[]').split(',')
-                        op_list.extend( controller.update_function_ops( module, function, values, should_replace=True ) )
-
-                    except MissingPort:
-                        print "Need to add input port %s in controller, parmRecList = %s " % ( parmRec[0], str( parmRecList ) )
-                        
-    #                    print>>sys.stderr, "Unrecognized config function %s in module %d (%s)" % ( parmRec[0], self.moduleID, self.__class__.__name__ )
-                action = core.db.action.create_action( op_list ) 
-                controller.add_new_action(action)
-                controller.perform_action(action)
-                                  
-                if proj_controller:
-                    proj_controller.cell_was_changed(action)
-                    proj_controller.current_cell_changed(  sheetName, row, col )
-
-#                print "Performed action, current controller version: ", str( controller.current_version )
-                    
-            except Exception, err:
-                print>>sys.stderr, "Error changing parameter in plot module. parm: %s, error: %s" % ( str(parmRecList), str(err) )
-                traceback.print_exc()
-        
     @classmethod
     def build_python_script_from_pipeline( klass, controller, version, plot_objs=[]):
         """build_python_script_from_pipeline(controller, version, plot_objs) -> str
