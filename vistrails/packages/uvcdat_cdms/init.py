@@ -1373,6 +1373,8 @@ class QCDATWidget(QVTKWidget):
             self.extraDimsNames = plots[0].var.var.getAxisIds()[:-2]
             self.extraDimsIndex=[0,]*len(self.extraDimsNames)
             self.extraDimsLen = plots[0].var.var.shape[:-2]
+
+            # RR0212: keep that?
             self.inputPorts = inputPorts
             if hasattr(self.parent(),"toolBar"):
                 t = self.parent().toolBar
@@ -1449,7 +1451,7 @@ class QCDATWidget(QVTKWidget):
           vtkRenderers.InitTraversal()
           renderers = []
           r = vtkRenderers.GetNextItem()
-          self.SetRenderWindow(self.canvas.backend.renWin)
+          self.SetRenderWindow(self.canvas.backend.renWin)  # RR0212: This is what embeds into the spreadsheet
           while r is not None:
             renderers.append(wrapVTKModule('vtkRenderer',r))
             r = vtkRenderers.GetNextItem()
@@ -1600,7 +1602,7 @@ class QCDATWidgetPrev(QtGui.QAction):
         selectedDim = str(self.parent().dimSelector.currentText())
         i = cellWidget.extraDimsNames.index(selectedDim)
         cellWidget.extraDimsIndex[i]-=1
-        cellWidget.updateContents(cellWidget.inputPorts,True)
+        cellWidget.updateContents(cellWidget.inputPorts,True)  # RR0212: fromToolBar=True
         self.parent().nextAction.setEnabled(True)
         if  cellWidget.extraDimsIndex[i]==0:
             self.setEnabled(False) 
@@ -1720,7 +1722,7 @@ class QCDATWidgetNext(QtGui.QToolButton):
                 cellWidget.extraDimsIndex[i]+=1
         else: 
             cellWidget.extraDimsIndex[i]=index
-        cellWidget.updateContents(cellWidget.inputPorts,True)
+        cellWidget.updateContents(cellWidget.inputPorts,True)  # RR0212: fromToolBar=True
         if cellWidget.extraDimsIndex[i]!=0:
             self.parent().prevAction.setEnabled(True)
         else:
