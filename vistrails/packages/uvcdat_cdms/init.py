@@ -1347,10 +1347,49 @@ class CDMSCell(SpreadsheetCell):
     def __init__(self,*args,**kargs):
         SpreadsheetCell.__init__(self)
 
+    @staticmethod
+    def GetRenderWindow():
+        win = vtk.vtkRenderWindow()
+        win.DoubleBufferOn()
+        win.StereoCapableWindowOn()
+        # RR0212: widget should call SetRenderWindow() since this can't
+        return win
+
+    @classmethod
+    def createCanvas(cls):
+        canvas = vcs.init(backend=cls.GetRenderWindow())
+        #canvas.ParameterChanged.connect(self.processParameterChange)  # RR0212: move to widget
+        ren = vtk.vtkRenderer()
+        r, g, b = canvas.backgroundcolor
+        ren.SetBackground(r/255., g/255., b/255.)
+        canvas.backend.renWin.AddRenderer(ren)
+        canvas.backend.createDefaultInteractor()
+        interactor = canvas.backend.renWin.GetInteractor()
+        interactor.RemoveObservers("ConfigureEvent")
+        try:
+            interactor.RemoveObservers("ModifiedEvent")
+        except Exception:
+            pass
+        interactor.AddObserver("ModifiedEvent",
+                               canvas.backend.configureEvent)
+        return canvas
+
     def compute(self):
         plots = sorted(self.getInputListFromPort('plot'),
                        key=lambda obj: obj.plot_order)
-        self.cellWidget = self.displayAndWait(QCDATWidget, (plots,))
+
+        canvas = self.createCanvas()
+        canvas.clear()
+
+        extraDimsNames = plots[0].var.var.getAxisIds()[:-2]
+        extraDimsIndex=[0,]*len(extraDimsNames)
+        extraDimsLen = plots[0].var.var.shape[:-2]
+
+        plotToCanvas(canvas, plots, extraDimsNames, extraDimsIndex)
+
+        self.cellWidget = self.displayAndWait(
+                QCDATWidget,
+                (canvas, extraDimsNames, extraDimsIndex, extraDimsLen))
 
 class QCDATWidget(QVTKWidget):
     """ QCDATWidget is the spreadsheet cell widget where the plots are displayed.
@@ -1390,35 +1429,13 @@ class QCDATWidget(QVTKWidget):
         parameter_name  = args[1]
         parameter_values  = args[2]
         CDMSPipelineHelper.change_parameters( [ ( parameter_name, parameter_values ), ] )
-        
-    def createCanvas(self):
-        if self.canvas is not None:
-          return
-        
-        self.canvas = vcs.init(backend=self.GetRenderWindow())
-        self.canvas.ParameterChanged.connect( self.processParameterChange )
-        ren = vtk.vtkRenderer()
-        r,g,b = self.canvas.backgroundcolor
-        ren.SetBackground(r/255.,g/255.,b/255.)
-        self.canvas.backend.renWin.AddRenderer(ren)
-        self.canvas.backend.createDefaultInteractor()
-        i = self.canvas.backend.renWin.GetInteractor()
-        i.RemoveObservers("ConfigureEvent")
-        try:
-          i.RemoveObservers("ModifiedEvent")
-        except:
-          pass
-        i.AddObserver("ModifiedEvent",self.canvas.backend.configureEvent)
-    
-    def updateContents(self, inputPorts, fromToolBar=False):
-        """ Get the vcs canvas, setup the cell's layout, and plot """
-        plots, = inputPorts
 
-        self.createCanvas()
+    def updateContentsFromToolBar(self):
+        plots = self.inputPorts[0]
 
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
         spreadsheetWindow.setUpdatesEnabled(False)
-            
+
         #get reparented window if it's there
         #if self.windowId in reparentedVCSWindows:
         #    self.window = reparentedVCSWindows[self.windowId]
@@ -1427,26 +1444,13 @@ class QCDATWidget(QVTKWidget):
         #    print "yes we come here"
         #    self.window = self.canvas
         #pass
-            
+
         #self.layout().addWidget(self.window)
-        #self.window.setVisible(True)    
+        #self.window.setVisible(True)
         # Place the mainwindow that the plot will be displayed in, into this
         # cell widget's layout
-           
-        self.canvas.clear()
-        if not fromToolBar:
-            self.extraDimsNames = plots[0].var.var.getAxisIds()[:-2]
-            self.extraDimsIndex=[0,]*len(self.extraDimsNames)
-            self.extraDimsLen = plots[0].var.var.shape[:-2]
 
-            # RR0212: keep that?
-            self.inputPorts = inputPorts
-            if hasattr(self.parent(),"toolBar"):
-                t = self.parent().toolBar
-                if hasattr(t,"dimSelector"):
-                    while (t.dimSelector.count()>0):
-                        t.dimSelector.removeItem(0)
-                    t.dimSelector.addItems(self.extraDimsNames)
+        self.canvas.clear()
 
         plotToCanvas(self.canvas, plots, self.extraDimsNames, self.extraDimsIndex)
 
@@ -1456,7 +1460,7 @@ class QCDATWidget(QVTKWidget):
           vtkRenderers.InitTraversal()
           renderers = []
           r = vtkRenderers.GetNextItem()
-          self.SetRenderWindow(self.canvas.backend.renWin)  # RR0212: This is what embeds into the spreadsheet
+          self.SetRenderWindow(self.canvas.backend.renWin)
           while r is not None:
             renderers.append(wrapVTKModule('vtkRenderer',r))
             r = vtkRenderers.GetNextItem()
@@ -1464,7 +1468,30 @@ class QCDATWidget(QVTKWidget):
         self.canvas.setAnimationStepper( QtAnimationStepper )
         spreadsheetWindow.setUpdatesEnabled(True)
         self.update()
-        
+
+        #make sure reparented windows stay invisible
+        #for windowId in reparentedVCSWindows:
+        #    reparentedVCSWindows[windowId].setVisible(False)
+
+    def updateContents(self, inputPorts):
+        """ Get the vcs canvas, setup the cell's layout, and plot """
+        self.canvas, self.extraDimsNames, self.extraDimsIndex, self.extraDimsLen = inputPorts
+        self.SetRenderWindow(self.canvas.backend.renWin)
+
+        doInteractorStyle = False
+        if doInteractorStyle:
+          vtkRenderers = self.canvas.backend.renWin.GetRenderers()
+          vtkRenderers.InitTraversal()
+          renderers = []
+          r = vtkRenderers.GetNextItem()
+          self.SetRenderWindow(self.canvas.backend.renWin)
+          while r is not None:
+            renderers.append(wrapVTKModule('vtkRenderer',r))
+            r = vtkRenderers.GetNextItem()
+          QVTKWidget.updateContents(self,(renderers,None,[],self.interactorStyle,None))
+        self.canvas.setAnimationStepper( QtAnimationStepper )
+        self.update()
+
         #make sure reparented windows stay invisible
         #for windowId in reparentedVCSWindows:
         #    reparentedVCSWindows[windowId].setVisible(False)
@@ -1607,7 +1634,7 @@ class QCDATWidgetPrev(QtGui.QAction):
         selectedDim = str(self.parent().dimSelector.currentText())
         i = cellWidget.extraDimsNames.index(selectedDim)
         cellWidget.extraDimsIndex[i]-=1
-        cellWidget.updateContents(cellWidget.inputPorts,True)  # RR0212: fromToolBar=True
+        cellWidget.updateContentsFromToolBar()
         self.parent().nextAction.setEnabled(True)
         if  cellWidget.extraDimsIndex[i]==0:
             self.setEnabled(False) 
@@ -1727,7 +1754,7 @@ class QCDATWidgetNext(QtGui.QToolButton):
                 cellWidget.extraDimsIndex[i]+=1
         else: 
             cellWidget.extraDimsIndex[i]=index
-        cellWidget.updateContents(cellWidget.inputPorts,True)  # RR0212: fromToolBar=True
+        cellWidget.updateContentsFromToolBar()
         if cellWidget.extraDimsIndex[i]!=0:
             self.parent().prevAction.setEnabled(True)
         else:
