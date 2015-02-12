@@ -1271,15 +1271,14 @@ class CDMSColorMap(Module):
      
 class CDMSCell(SpreadsheetCell):
     _input_ports = expand_port_specs([("plot", "CDMSPlot")])
+
     def __init__(self,*args,**kargs):
         SpreadsheetCell.__init__(self)
+
     def compute(self):
-        input_ports = []
-        plots = []
-        for plot in sorted(self.getInputListFromPort('plot'),  key=lambda obj: obj.plot_order):
-            plots.append(plot)
-        input_ports.append(plots)
-        self.cellWidget = self.displayAndWait(QCDATWidget, input_ports)
+        plots = sorted(self.getInputListFromPort('plot'),
+                       key=lambda obj: obj.plot_order)
+        self.cellWidget = self.displayAndWait(QCDATWidget, (plots,))
 
 class QCDATWidget(QVTKWidget):
     """ QCDATWidget is the spreadsheet cell widget where the plots are displayed.
@@ -1348,7 +1347,9 @@ class QCDATWidget(QVTKWidget):
         return k
     
     def updateContents(self, inputPorts, fromToolBar=False):
-        """ Get the vcs canvas, setup the cell's layout, and plot """      
+        """ Get the vcs canvas, setup the cell's layout, and plot """
+        plots, = inputPorts
+
         self.createCanvas()
 
         spreadsheetWindow = spreadsheetController.findSpreadsheetWindow()
@@ -1370,9 +1371,9 @@ class QCDATWidget(QVTKWidget):
            
         self.canvas.clear()
         if not fromToolBar:
-            self.extraDimsNames=inputPorts[0][0].var.var.getAxisIds()[:-2]
+            self.extraDimsNames = plots[0].var.var.getAxisIds()[:-2]
             self.extraDimsIndex=[0,]*len(self.extraDimsNames)
-            self.extraDimsLen=inputPorts[0][0].var.var.shape[:-2]
+            self.extraDimsLen = plots[0].var.var.shape[:-2]
             self.inputPorts = inputPorts
             if hasattr(self.parent(),"toolBar"):
                 t = self.parent().toolBar
@@ -1381,7 +1382,7 @@ class QCDATWidget(QVTKWidget):
                         t.dimSelector.removeItem(0)
                     t.dimSelector.addItems(self.extraDimsNames)
         # Plot
-        for plot in inputPorts[0]:
+        for plot in plots:
             cmd = "#Now plotting\nvcs_canvas[%i].plot(" % (self.canvas.canvasid()-1)
             # print "PLOT TYPE:", plot.plot_type
             k1 = self.prepExtraDims(plot.var.var)
