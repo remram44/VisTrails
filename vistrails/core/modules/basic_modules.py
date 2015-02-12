@@ -815,7 +815,8 @@ class Null(Module):
 class CodeRunnerMixin(object):
     def run_code(self, code_str,
                  use_input=False,
-                 use_output=False):
+                 use_output=False,
+                 environment={}):
         """run_code runs a piece of code as a VisTrails module.
         use_input and use_output control whether to use the inputport
         and output port dictionary as local variables inside the
@@ -841,6 +842,7 @@ class CodeRunnerMixin(object):
                         'cache_this': cache_this,
                         'registry': reg,
                         'self': self})
+        locals_.update(environment)
         del locals_['source']
         exec code_str in locals_, locals_
         if use_output:

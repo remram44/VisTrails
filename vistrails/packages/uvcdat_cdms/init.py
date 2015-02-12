@@ -18,8 +18,10 @@ import MV2
 import os
 import ast
 import string
+import urllib
 from info import identifier
 from widgets import GraphicsMethodConfigurationWidget
+from core.modules.basic_modules import CodeRunnerMixin
 from core.configuration import get_vistrails_configuration
 from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module, ModuleError, NotCacheable
@@ -1280,6 +1282,20 @@ class CDMSCell(SpreadsheetCell):
                        key=lambda obj: obj.plot_order)
         self.cellWidget = self.displayAndWait(QCDATWidget, (plots,))
 
+class CDMSSource(CodeRunnerMixin, SpreadsheetCell):
+    """This is kind of a PythonSource, but creates a QCDATWidget first.
+    """
+    _input_ports = expand_port_specs([("source", "basic:String", False)])
+
+    def compute(self):
+        # Create the widget with no plots
+        self.widget = self.displayAndWait(QCDATWidget, ([],))
+
+        # Run the code
+        s = urllib.unquote(str(self.forceGetInputFromPort('source', '')))
+        self.run_code(s, use_input=True, use_output=True,
+                      environment={'canvas': self.widget.canvas})
+
 class QCDATWidget(QVTKWidget):
     """ QCDATWidget is the spreadsheet cell widget where the plots are displayed.
     The widget interacts with the underlying C++, VCSQtManager through SIP.
@@ -1901,7 +1917,10 @@ class QCDATWidgetColormap(QtGui.QAction):
 
 _modules = [CDMSVariable, CDMSPlot, CDMS3DPlot, CDMSCell, CDMSTDMarker, CDMSVariableOperation,
             CDMSUnaryVariableOperation, CDMSBinaryVariableOperation, 
-            CDMSNaryVariableOperation, CDMSColorMap, CDMSGrowerOperation]
+            CDMSNaryVariableOperation, CDMSColorMap, CDMSGrowerOperation,
+            (CDMSSource, {
+                'configureWidgetType': ("gui.modules.python_source_configure",
+                                        "PythonSourceConfigurationWidget")})]
 
 def get_input_ports(plot_type):
     if plot_type == "Boxfill":
