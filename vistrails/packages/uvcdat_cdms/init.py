@@ -1393,7 +1393,7 @@ class QCDATWidget(QVTKWidget):
                 args.append(plot.var2.var(**k2))
                 cmd+="%s(**%s), " % (args[-1].id,str(k2))
             args.append(plot.template)
-            cgm = self.get_graphics_method(plot.plot_type, plot.graphics_method_name)
+            cgm = getattr(self.canvas, "get%s" % plot.plot_type.lower())(plot.graphics_method_name)
 #            cgm.setProvenanceHandler( plot.processParameterUpdate )
             if plot.graphics_method_name != 'default':
                 for k in plot.gm_attributes:
@@ -1462,10 +1462,6 @@ class QCDATWidget(QVTKWidget):
         #make sure reparented windows stay invisible
         #for windowId in reparentedVCSWindows:
         #    reparentedVCSWindows[windowId].setVisible(False)
-        
-    def get_graphics_method(self, plotType, gmName):
-        method_name = "get"+str(plotType).lower()
-        return getattr(self.canvas,method_name)(gmName)
     
     def deleteLater(self):
         """ deleteLater() -> None        
