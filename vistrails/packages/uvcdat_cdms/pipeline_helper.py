@@ -18,7 +18,7 @@ from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from PyQt4.QtGui import QApplication
 from init import CDMSPlot, CDMS3DPlot, CDMSVariable, CDMSCell, CDMSVariableOperation, \
        CDMSUnaryVariableOperation, CDMSBinaryVariableOperation, \
-       CDMSNaryVariableOperation, CDMSGrowerOperation
+       CDMSNaryVariableOperation, CDMSGrowerOperation, CDMSSource
 from widgets import GraphicsMethodConfigurationWidget
 from gui.theme import CurrentTheme
 from gui.common_widgets import QDockPushButton
@@ -565,7 +565,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         
         # Update project controller cell information
         pipeline = controller.vistrail.getPipeline(action.id)
-        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSPlot, CDMS3DPlot])
+        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [CDMSPlot, CDMS3DPlot, CDMSSource])
         
         cell.clear()
         for pl_module in plot_modules:
@@ -602,7 +602,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         """
         from packages.spreadsheet.basic_widgets import CellLocation
         cell_locations = CDMSPipelineHelper.find_modules_by_type(pipeline, [CellLocation])
-        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [ CDMSPlot, CDMS3DPlot ])
+        plot_modules = CDMSPipelineHelper.find_modules_by_type(pipeline, [ CDMSPlot, CDMS3DPlot, CDMSSource ])
         
         #sort plot modules based on order
         fn = lambda x: PlotPipelineHelper.get_value_from_function(x, "plotOrder")
