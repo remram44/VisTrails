@@ -1275,7 +1275,72 @@ def prepExtraDims(var, extraDimsNames, extraDimsIndex):
         if d in var.getAxisIds():
             k[d]=slice(i,None)
     return k
-     
+
+def plotToCanvas(canvas, plots, extraDimsNames, extraDimsIndex):
+    # Plot
+    for plot in plots:
+        cmd = "#Now plotting\nvcs_canvas[%i].plot(" % (canvas.canvasid()-1)
+        # print "PLOT TYPE:", plot.plot_type
+        k1 = prepExtraDims(plot.var.var, extraDimsNames, extraDimsIndex)
+        args = [plot.var.var(**k1)]
+        cmd+="%s(**%s), " % (args[0].id,str(k1))
+        if hasattr(plot, "var2") and plot.var2 is not None:
+            k2 = prepExtraDims(plot.var2.var, extraDimsNames, extraDimsIndex)
+            args.append(plot.var2.var(**k2))
+            cmd+="%s(**%s), " % (args[-1].id,str(k2))
+        args.append(plot.template)
+        cgm = getattr(canvas, "get%s" % plot.plot_type.lower())(plot.graphics_method_name)
+#            cgm.setProvenanceHandler( plot.processParameterUpdate )
+        if plot.graphics_method_name != 'default':
+            for k in plot.gm_attributes:
+                if hasattr(plot,k):
+                    if k in ['legend']:
+                        setattr(cgm,k,eval(getattr(plot,k)))
+                    else:
+#                            print "cgm=",cgm,"k=",k,"getattr(plot,k)=",getattr(plot,k)
+                        if getattr(plot,k)!=getattr(cgm,k):
+                            try:
+                                setattr(cgm,k,eval(getattr(plot,k)))
+                            except:
+                                setattr(cgm,k,getattr(plot,k))
+                    #print k, " = ", getattr(cgm,k)
+
+        kwargs = plot.kwargs
+        file_path = None
+        for fname in [ plot.var.file, plot.var.filename ]:
+            if fname and ( os.path.isfile(fname) or fname.startswith('http://') ):
+                file_path = fname
+                break
+        if not file_path and plot.var.url:
+            file_path = plot.var.url
+        if file_path: kwargs['cdmsfile'] =  file_path
+        #record commands
+        cmd+=" '%s', '%s'" %( plot.template,cgm.name)
+        for k in kwargs:
+            cmd+=", %s=%s" % (k, repr(kwargs[k]))
+        cmd+=")"
+        from gui.application import get_vistrails_application
+        _app = get_vistrails_application()
+        conf = get_vistrails_configuration()
+        interactive = conf.check('interactiveMode')
+        if interactive:
+            _app.uvcdatWindow.record(cmd)
+
+        #apply colormap
+        if plot.colorMap is not None:
+            if plot.colorMap.colorMapName is not None:
+                canvas.setcolormap(str(plot.colorMap.colorMapName))
+
+            if plot.colorMap.colorCells is not None:
+                for (n,r,g,b) in plot.colorMap.colorCells:
+                    canvas.canvas.setcolorcell(n,r,g,b)
+                #see vcs.Canvas.setcolorcell
+                canvas.canvas.updateVCSsegments(canvas.mode) # pass down self and mode to _vcs module
+                canvas.flush() # update the canvas by processing all the X events
+
+        #kwargs[ 'cell_coordinates' ] = self.cell_coordinates  # RR0212: I'm dropping that
+        canvas.plot(cgm,*args,**kwargs)
+
 class CDMSCell(SpreadsheetCell):
     _input_ports = expand_port_specs([("plot", "CDMSPlot")])
 
@@ -1382,69 +1447,9 @@ class QCDATWidget(QVTKWidget):
                     while (t.dimSelector.count()>0):
                         t.dimSelector.removeItem(0)
                     t.dimSelector.addItems(self.extraDimsNames)
-        # Plot
-        for plot in plots:
-            cmd = "#Now plotting\nvcs_canvas[%i].plot(" % (self.canvas.canvasid()-1)
-            # print "PLOT TYPE:", plot.plot_type
-            k1 = prepExtraDims(plot.var.var, self.extraDimsNames, self.extraDimsIndex)
-            args = [plot.var.var(**k1)]
-            cmd+="%s(**%s), " % (args[0].id,str(k1))
-            if hasattr(plot, "var2") and plot.var2 is not None:
-                k2 = prepExtraDims(plot.var2.var, self.extraDimsNames, self.extraDimsIndex)
-                args.append(plot.var2.var(**k2))
-                cmd+="%s(**%s), " % (args[-1].id,str(k2))
-            args.append(plot.template)
-            cgm = getattr(self.canvas, "get%s" % plot.plot_type.lower())(plot.graphics_method_name)
-#            cgm.setProvenanceHandler( plot.processParameterUpdate )
-            if plot.graphics_method_name != 'default':
-                for k in plot.gm_attributes:
-                    if hasattr(plot,k):
-                        if k in ['legend']:
-                            setattr(cgm,k,eval(getattr(plot,k)))
-                        else:
-#                            print "cgm=",cgm,"k=",k,"getattr(plot,k)=",getattr(plot,k)
-                            if getattr(plot,k)!=getattr(cgm,k):
-                                try:
-                                    setattr(cgm,k,eval(getattr(plot,k)))
-                                except:
-                                    setattr(cgm,k,getattr(plot,k))
-                        #print k, " = ", getattr(cgm,k)
-                            
-            kwargs = plot.kwargs
-            file_path = None 
-            for fname in [ plot.var.file, plot.var.filename ]:
-                if fname and ( os.path.isfile(fname) or fname.startswith('http://') ):
-                    file_path = fname
-                    break 
-            if not file_path and plot.var.url: 
-                file_path = plot.var.url   
-            if file_path: kwargs['cdmsfile'] =  file_path
-            #record commands
-            cmd+=" '%s', '%s'" %( plot.template,cgm.name)
-            for k in kwargs:
-                cmd+=", %s=%s" % (k, repr(kwargs[k]))
-            cmd+=")"
-            from gui.application import get_vistrails_application
-            _app = get_vistrails_application()
-            conf = get_vistrails_configuration()
-            interactive = conf.check('interactiveMode')
-            if interactive:
-                _app.uvcdatWindow.record(cmd)                
-            
-            #apply colormap
-            if plot.colorMap is not None:
-                if plot.colorMap.colorMapName is not None:
-                    self.canvas.setcolormap(str(plot.colorMap.colorMapName))
-                    
-                if plot.colorMap.colorCells is not None:
-                    for (n,r,g,b) in plot.colorMap.colorCells:
-                        self.canvas.canvas.setcolorcell(n,r,g,b)
-                    #see vcs.Canvas.setcolorcell
-                    self.canvas.canvas.updateVCSsegments(self.canvas.mode) # pass down self and mode to _vcs module
-                    self.canvas.flush() # update the canvas by processing all the X events
 
-            #kwargs[ 'cell_coordinates' ] = self.cell_coordinates  # RR0212: I'm dropping that
-            self.canvas.plot(cgm,*args,**kwargs)
+        plotToCanvas(self.canvas, plots, self.extraDimsNames, self.extraDimsIndex)
+
         doInteractorStyle = False
         if doInteractorStyle:
           vtkRenderers = self.canvas.backend.renWin.GetRenderers()
