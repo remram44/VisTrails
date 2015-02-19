@@ -333,6 +333,7 @@ class QColormapEditor(QtGui.QColorDialog):
             if action is not None:
                 self.controller.add_new_action(action)
                 self.controller.perform_action(action)
+                print("QColormapEditor: %d -> %d" % (action.parent, action.id))
 
         if action is not None:
             if hasattr(self.controller, 'uvcdat_controller'):

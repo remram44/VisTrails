@@ -925,7 +925,8 @@ class ProjectController(QtCore.QObject):
             module = var.to_module(self.vt_controller)
             self.vt_controller.change_selected_version(
                 cell.current_parent_version)
-            self.vt_controller.add_module_action(module)
+            _action = self.vt_controller.add_module_action(module)
+            print("project_controller get_var_module: %d -> %d" % (_action.parent, _action.id))
             cell.current_parent_version = self.vt_controller.current_version
             var_dict[varname] = module
             return module

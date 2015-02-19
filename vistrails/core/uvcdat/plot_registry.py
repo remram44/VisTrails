@@ -549,6 +549,7 @@ class Plot(object):
             controller.change_selected_version(parent_version)
             controller.add_new_action(action)
             controller.perform_action(action)
+            print("uvcdat addParameterChangesFromAliasesAction: %d -> %d" % (parent_version, action.id))
         return action
     
     def acceptsVariable(self, varname):

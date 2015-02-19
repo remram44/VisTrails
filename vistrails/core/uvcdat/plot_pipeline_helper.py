@@ -355,4 +355,6 @@ class PlotPipelineHelper(object):
         controller.change_selected_version(version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        print("uvcdat finish_plot_workflow: %d -> %d" % (version, action.id))
+
         return action

@@ -250,6 +250,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         controller.change_selected_version(action.id)
         action = controller.add_annotation(('__desc__', txt), op_module.id)
         actions.append(action)
+        print("build_variable_operation_pipeline: %d -> %d" % (version, action.id))
         return (op_module, actions)
                 
     @staticmethod
@@ -369,6 +370,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         controller.change_selected_version(version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        print("build_plot_pipeline_action: %d -> %d" % (version, action.id))
         return action
     
     @staticmethod
@@ -452,6 +454,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         controller.change_selected_version(version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        print("update_plot_pipeline_action: %d -> %d" % (version, action.id))
         return action
     
     @staticmethod
@@ -484,6 +487,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         controller.change_selected_version(version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        print("rebuild_pipeline_action: %d -> %d" % (version, action.id))
             
         sheetName = proj_controller.current_sheetName
         (row, col) = proj_controller.current_cell_coords
@@ -561,6 +565,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         controller.change_selected_version(cell.current_parent_version)
         controller.add_new_action(action)
         controller.perform_action(action)
+        print("copy_pipeline_to_other_location: %d -> %d" % (cell.current_parent_version, action.id))
         cell.current_parent_version = action.id
         
         # Update project controller cell information
@@ -1273,6 +1278,7 @@ class CDMSPlotWidget(QtGui.QWidget):
             self.controller.change_selected_version(version)
             self.controller.add_new_action(action)
             self.controller.perform_action(action)
+            print("update_pipeline: %d -> %d" % (version, action.id))
         
         return action
     
