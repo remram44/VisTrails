@@ -314,7 +314,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return (ops + new_ops, new_conns + [cell_conn], plot_module)
     
     @staticmethod
-    def build_plot_pipeline_action(controller, version, var_modules, plot_objs, 
+    def build_plot_pipeline_action(controller, version, plot_objs,
                                    row, col):  # RR0212: TODO: rewrite
         """build_plot_pipeline_action(controller: VistrailController,
                                       version: long,
@@ -331,8 +331,29 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         workflow should be displayed.
         It will create plot overlays based on the list of plot_objs given. 
         """
-        # FIXME want to make sure that nothing changes if var_module
-        # or plot_module do not change
+        if controller is None:
+            controller = api.get_current_controller()
+            version = 0L
+
+        source = ["import cdms2, cdutil, genutil",
+                  "vcs",
+                  "sys"]
+
+        # See ProjectController#update_cell
+
+        # Write out the variables
+        # See ProjectController#get_var_module
+        for plot in plot_objs:
+            for var in plot.variables:
+                pass
+                # find variable pipeline
+                # use Variable#from_module()
+                # use Variable#to_python_script()
+
+
+
+
+
         if controller is None:
             controller = api.get_current_controller()
             version = 0L
@@ -386,8 +407,9 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return action
         
     @staticmethod
-    def update_plot_pipeline_action(controller, version, var_modules, plot_objs,
+    def update_plot_pipeline_action(controller, version, plot_objs,
                                     row, col):  # RR0212: TODO: rewrite
+                                                # removed var_modules
         """update_plot_pipeline_action(controller: VistrailController,
                                       version: long,
                                       var_modules: [list of modules],
