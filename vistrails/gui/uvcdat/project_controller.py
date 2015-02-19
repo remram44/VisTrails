@@ -983,6 +983,7 @@ class ProjectController(QtCore.QObject):
             #get var modules from plots in order without duplicates
             var_modules = []
             var_dict = {}
+            # RR0212: get_var_module() builds a new version from 0 with a copy of the var modules, we don't want that
             for plot in cell.plots:
                 if plot.varnum == len(plot.variables):
                     for var in plot.variables:

@@ -498,6 +498,7 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         var_modules = []
         var_dict = {}
         ready_plots = []
+        # RR0212: like ProjectController#update_cell(), this needs to be updated not to copy the variable modules
         for plot in cell.plots:
             if plot.varnum == len(plot.variables):
                 ready_plots.append(plot)
