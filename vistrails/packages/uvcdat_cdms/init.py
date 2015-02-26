@@ -271,6 +271,7 @@ class CDMSVariable(Variable):
         return var
     
     def to_python_script(self, include_imports=False, ident=""):
+        # RR0212: TODO, add meta-info
         text = ''
         if include_imports:
             text += ident + "import cdms2, cdutil, genutil\n"

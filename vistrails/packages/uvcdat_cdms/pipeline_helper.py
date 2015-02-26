@@ -1,4 +1,5 @@
 import copy
+import urllib2
 
 try:
     import cPickle as pickle
@@ -7,8 +8,8 @@ except:
 
 from core.uvcdat.plot_pipeline_helper import PlotPipelineHelper
 from core.uvcdat.plot_registry import get_plot_registry
-from core.modules.module_registry import get_module_registry
 from core.modules.vistrails_module import Module
+from core.modules.basic_modules import PythonSource
 from core.uvcdat.plotmanager import get_plot_manager
 from core.modules.module_registry import get_module_registry, MissingPort
 import core.db.action
@@ -16,16 +17,14 @@ import core.db.io
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import pyqtSlot, pyqtSignal
 from PyQt4.QtGui import QApplication
-from init import CDMSPlot, CDMS3DPlot, CDMSVariable, CDMSCell, CDMSVariableOperation, \
+from init import CDMSPlot, CDMS3DPlot, CDMSVariable, CDMSVariableOperation, \
        CDMSUnaryVariableOperation, CDMSBinaryVariableOperation, \
        CDMSNaryVariableOperation, CDMSGrowerOperation, CDMSSource
 from widgets import GraphicsMethodConfigurationWidget
 from gui.theme import CurrentTheme
 from gui.common_widgets import QDockPushButton
 from gui.uvcdat.dockplot import PlotTreeWidgetItem
-from gui.uvcdat.uvcdatCommons import plotTypes, gmInfos
 from gui.uvcdat.definedVariableWidget import QDefinedVariableWidget
-from gui.application import get_vistrails_application
 import api, sys, traceback
 
  
@@ -774,7 +773,19 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         else:
             result = None
         return result
-    
+
+    @staticmethod
+    def make_module_from_python_source(controller, source, module=PythonSource):
+        """Makes a PythonSource or CDMSSource module from the code as str.
+        """
+        reg = get_module_registry()
+        module = controller.create_module_from_descriptor(
+            reg.get_descriptor(module))
+        f = controller.create_function(module, 'source',
+                                       [urllib2.quote(source)])
+        module.add_function(f)
+        return module
+
 class CDMSPlotWidget(QtGui.QWidget):
     def __init__(self,controller, version, plot_list, var_list, parent=None):
         QtGui.QWidget.__init__(self,parent)
