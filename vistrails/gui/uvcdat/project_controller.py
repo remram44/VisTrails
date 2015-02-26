@@ -1184,29 +1184,14 @@ class ProjectController(QtCore.QObject):
         self.get_var_module(targetId, dummyCell, CDMSPipelineHelper)
         result = self.vt_controller.execute_current_workflow()
         workflow_result = result[0][0]
-        
+
         if len(workflow_result.errors) > 0:
             import logging
             for key in workflow_result.errors:
                 logging.exception(workflow_result.errors[key])
-            QMessageBox.warning( None, "Workflow Error", 
-                                 "Error executing variable pipeline. See log for details.");
+            QMessageBox.warning( None, "Workflow Error",
+                                 "Error executing variable pipeline. See log for details.")
             return None
-        
-        #import pdb; pdb.set_trace()
-        
-        from packages.uvcdat_cdms.init import CDMSVariable, CDMSVariableOperation
-        modules = workflow_result.objects
 
-        for id, module in modules.iteritems():
-            #print module
-            if isinstance(module, CDMSVariable):
-                #print module.name
-                if module.name == targetId:
-                    return module.var
-            elif isinstance(module, CDMSVariableOperation):
-                #print module.varname
-                if module.varname == targetId:
-                    return module.outvar.var
-                
-        return None
+        module, = workflow_result.objects  # There can be only one!
+        return module

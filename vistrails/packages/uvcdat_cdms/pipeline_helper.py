@@ -778,9 +778,11 @@ class CDMSPipelineHelper(PlotPipelineHelper):
     def make_module_from_python_source(controller, source, module=PythonSource):
         """Makes a PythonSource or CDMSSource module from the code as str.
         """
+        # Module
         reg = get_module_registry()
         module = controller.create_module_from_descriptor(
             reg.get_descriptor(module))
+        # Source function
         f = controller.create_function(module, 'source',
                                        [urllib2.quote(source)])
         module.add_function(f)
