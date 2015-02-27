@@ -927,7 +927,8 @@ class ProjectController(QtCore.QObject):
             source = var.to_python_script(include_imports=True)
             module = helper.make_module_from_python_source(
                     self.vt_controller,
-                    source)
+                    source,
+                    outputs=[(varname, '(gov.llnl.uvcdat.cdms:CDMSVariable)')])
             _action = self.vt_controller.add_module_action(module)
             print("project_controller get_var_module: %d -> %d" % (_action.parent, _action.id))
             cell.current_parent_version = self.vt_controller.current_version
@@ -1193,5 +1194,5 @@ class ProjectController(QtCore.QObject):
                                  "Error executing variable pipeline. See log for details.")
             return None
 
-        module, = workflow_result.objects  # There can be only one!
-        return module
+        [(_, module)] = workflow_result.objects.items()  # There can be only one!
+        return module.get_output(targetId)

@@ -12,6 +12,7 @@ from core.modules.vistrails_module import Module
 from core.modules.basic_modules import PythonSource
 from core.uvcdat.plotmanager import get_plot_manager
 from core.modules.module_registry import get_module_registry, MissingPort
+from core.vistrail.port_spec import PortSpec
 import core.db.action
 import core.db.io    
 from PyQt4 import QtCore, QtGui
@@ -775,7 +776,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return result
 
     @staticmethod
-    def make_module_from_python_source(controller, source, module=PythonSource):
+    def make_module_from_python_source(controller, source,
+                                       module=PythonSource, outputs=None):
         """Makes a PythonSource or CDMSSource module from the code as str.
         """
         # Module
@@ -786,6 +788,14 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         f = controller.create_function(module, 'source',
                                        [urllib2.quote(source)])
         module.add_function(f)
+        # Output ports
+        if outputs:
+            for i, (name, sig) in enumerate(outputs):
+                ps = PortSpec(id=i,
+                              name=name, type='output',
+                              sigstring=sig,
+                              sort_key=-1)
+                module.add_port_spec(ps)
         return module
 
 class CDMSPlotWidget(QtGui.QWidget):
