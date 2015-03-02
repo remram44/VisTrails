@@ -331,8 +331,38 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         workflow should be displayed.
         It will create plot overlays based on the list of plot_objs given. 
         """
-        # FIXME want to make sure that nothing changes if var_module
-        # or plot_module do not change
+        if controller is None:
+            controller = api.get_current_controller()
+            version = 0L
+        pipeline = controller.current_pipeline
+
+        source = ["import cdms2, cdutil, genutil",
+                  "vcs",
+                  "sys"]
+
+        # Write out the variables
+        var_modules = CDMSPipelineHelper.find_topo_sort_modules_by_types(
+                pipeline,
+                [CDMSVariable, CDMSVariableOperation])
+        for m in var_modules:
+            module_class = m.module_descriptor.module
+            source.append(module_class.from_module(m).to_python_script())
+
+        # VCS canvas
+        source.append("try:\n"
+                      "    canvas  # canvas from spreadsheet\n"
+                      "except NameError:"
+                      "    canvas = cvs.init()  # not using spreadsheet; open new window")
+
+        # Plots
+        for plot in plot_objs:
+
+
+
+
+
+
+
         if controller is None:
             controller = api.get_current_controller()
             version = 0L
@@ -662,9 +692,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         
         var_op_modules = CDMSPipelineHelper.find_topo_sort_modules_by_types( pipeline, [CDMSVariable,   CDMSVariableOperation] )
         for m in var_op_modules:
-            desc = m.module_descriptor.module
-            mobj = desc.from_module(m)
-            text += mobj.to_python_script(ident=ident)
+            module_class = m.module_descriptor.module
+            text += module_class.from_module(m).to_python_script(ident=ident)
         vnames = []        
         text += ident + "canvas = vcs.init()\n"
         for mplot in plots:
