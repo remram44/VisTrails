@@ -526,9 +526,8 @@ class ProjectController(QtCore.QObject):
         if sheetName in self.sheet_map:
             if (row,col) in self.sheet_map[sheetName]:
                 cell = self.sheet_map[sheetName][(row,col)]
-                update = cell.is_ready()
                 cell.add_variable(varName)
-                self.check_update_cell(sheetName,row,col,update)
+                self.check_update_cell(sheetName, row, col)
             else:
                 self.sheet_map[sheetName][(row,col)] = ControllerCell(variables=[varName],
                                                                       plots=[],
@@ -771,9 +770,8 @@ class ProjectController(QtCore.QObject):
                     for varName in varNames:
                         self.variable_was_dropped((varName, sheetName, row, col))
                 else:
-                    update = cell.is_ready()
                     cell.add_plot(plot)
-                    self.check_update_cell(sheetName,row,col, update)
+                    self.check_update_cell(sheetName, row, col)
             else:
                 self.sheet_map[sheetName][(row,col)] = ControllerCell(variables=[],
                                                                       plots=[plot],
@@ -903,11 +901,11 @@ class ProjectController(QtCore.QObject):
                                                 cell.current_parent_version,
                                                 cell.plots)
         
-    def check_update_cell(self, sheetName, row, col, reuse_workflow=False):
+    def check_update_cell(self, sheetName, row, col):
         try:
             cell = self.sheet_map[sheetName][(row,col)]
             if cell.is_ready():
-                self.update_cell(sheetName, row, col, reuse_workflow)
+                self.update_cell(sheetName, row, col)
                 if sheetName != self.current_sheetName or [row,col] != self.current_cell_coords:
                     self.current_cell_changed(sheetName, row, col)
                 cell.pushUndoVersion()
@@ -969,27 +967,13 @@ class ProjectController(QtCore.QObject):
             var_dict[varname] = varm
             return varm
         
-    def update_cell(self, sheetName, row, col, reuse_workflow=False):
+    def update_cell(self, sheetName, row, col):
         cell = self.sheet_map[sheetName][(row,col)]
         helper = CDMSPipelineHelper
         # helper = self.plot_manager.get_plot_helper(cell.plots[0].package)
-        
-        #reusing the workflow appears to be broken, getting 
-        #Pipeline Error, module not found: id=#
-        reuse_workflow = False
-        
-        if not reuse_workflow:
-            self.reset_workflow(cell)
-        else:
-            helper_remove = helper.remove_variables_from_pipeline_action  # RR0212: broken; method might not exist
-            action = helper_remove(self.vt_controller,
-                                   cell.current_parent_version)
-            if action:
-                cell.current_parent_version = action.id
-#        vars = []
-#        for v in cell.variables:
-#            vars.append(v)
-        
+
+        self.reset_workflow(cell)
+
         if cell.is_ready():
             var_sources = {}
             for plot in cell.plots:
@@ -1064,7 +1048,7 @@ class ProjectController(QtCore.QObject):
             for (row,col) in self.sheet_map[sheetname]:
                 cell = self.sheet_map[sheetname][(row,col)]
                 if cell and varname in cell.variables():
-                    self.update_cell(sheetname, row, col, True)
+                    self.update_cell(sheetname, row, col)
         
     def get_current_cell_info(self):
         """
