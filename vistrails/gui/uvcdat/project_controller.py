@@ -991,22 +991,18 @@ class ProjectController(QtCore.QObject):
 #            vars.append(v)
         
         if cell.is_ready():
-            #get var modules from plots in order without duplicates
-            var_modules = []
-            var_dict = {}
-            # RR0212: get_var_module() builds a new version from 0 with a copy of the var modules, we don't want that
+            var_sources = {}
             for plot in cell.plots:
                 if plot.varnum == len(plot.variables):
                     for var in plot.variables:
-                        self.get_var_module(var, cell, helper, var_dict)
-                        var_modules.append(var_dict[var])
+                        var_sources[var] = self.get_var_source(var)
             
-            self.update_workflow(var_modules, cell, sheetName, row, col, 
+            self.update_workflow(var_sources, cell, sheetName, row, col,
                                  reuse_workflow)
             self.emit(QtCore.SIGNAL("update_cell"), sheetName, row, col, None, 
                       None, cell.plots[0].package, cell.current_parent_version)
-            
-    def update_workflow(self, var_modules, cell, sheetName, row, column, 
+
+    def update_workflow(self, var_sources, cell, sheetName, row, column,
                         reuse_workflow=False):
         
         #only build pipeline for plots that have all needed vars
@@ -1022,13 +1018,13 @@ class ProjectController(QtCore.QObject):
         if not reuse_workflow:
             action = helper.build_plot_pipeline_action(self.vt_controller, 
                                                        cell.current_parent_version, 
-                                                       var_modules, ready_plots,
+                                                       var_sources, ready_plots,
                                                        row, column)
         else:
             try:
                 action = helper.update_plot_pipeline_action(self.vt_controller, 
                                                             cell.current_parent_version,
-                                                            var_modules, ready_plots,
+                                                            var_sources, ready_plots,
                                                             row, column)
             except UnimplementedException:
                 # the pipeline helper does not support replacing variables.
@@ -1036,7 +1032,7 @@ class ProjectController(QtCore.QObject):
                 self.reset_workflow(cell)
                 action = helper.build_plot_pipeline_action(self.vt_controller, 
                                                        cell.current_parent_version, 
-                                                       var_modules, ready_plots,
+                                                       var_sources, ready_plots,
                                                        row, column)
         #print '### setting row/column:', row, column
         #notice that at this point the action was already performed by the helper

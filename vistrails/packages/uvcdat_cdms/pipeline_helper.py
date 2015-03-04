@@ -314,8 +314,8 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         return (ops + new_ops, new_conns + [cell_conn], plot_module)
     
     @staticmethod
-    def build_plot_pipeline_action(controller, version, var_modules, plot_objs, 
-                                   row, col):  # RR0212: TODO: rewrite
+    def build_plot_pipeline_action(controller, version, var_sources, plot_objs,
+                                   row, col):
         """build_plot_pipeline_action(controller: VistrailController,
                                       version: long,
                                       var_modules: [list of modules],
