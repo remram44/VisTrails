@@ -313,8 +313,9 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         
         return (ops + new_ops, new_conns + [cell_conn], plot_module)
     
-    @staticmethod
-    def build_plot_pipeline_action(controller, version, var_sources, plot_objs,
+    @classmethod
+    def build_plot_pipeline_action(cls, controller, version,
+                                   var_sources, plot_objs,
                                    row, col):
         """build_plot_pipeline_action(controller: VistrailController,
                                       version: long,
@@ -331,24 +332,66 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         workflow should be displayed.
         It will create plot overlays based on the list of plot_objs given. 
         """
-        # FIXME want to make sure that nothing changes if var_module
-        # or plot_module do not change
+
         if controller is None:
             controller = api.get_current_controller()
             version = 0L
-        added_vars = []
+        pipeline = controller.current_pipeline
+
+        source = list(var_sources)
+        source.append("import vcs, sys")
+        source.append("try:\n"
+                      "    canvas  # canvas from spreadsheet\n"
+                      "except NameError:\n"
+                      "    canvas = vcs.init()  # not using spreadsheet; "
+                      "open new window")
+
         reg = get_module_registry()
-        cell_module = controller.create_module_from_descriptor( reg.get_descriptor_by_name('gov.llnl.uvcdat.cdms', 'CDMSCell') )
-        ops = [('add', cell_module)]
-        conns = []
-        plot_modules = []
-        
+
         for i, plot in enumerate(plot_objs):
-            ops2, new_conns, pm = CDMSPipelineHelper.create_actions_from_plot_obj( controller, var_modules, cell_module, plot, added_vars, i+1 )
-            ops.extend(ops2)
-            conns.extend(new_conns)
-            plot_modules.append(pm)
-            
+            plot_type = plot.parent
+            plot_gm = plot.name
+            plot_descriptor = reg.get_descriptor_by_name('gov.llnl.uvcdat.cdms',
+                                                         'CDMS' + plot_type)
+            plot_class = plot_descriptor.module
+            plot_functions = [('graphicsMethodName', [plot_gm])]
+            if plot.template is not None:
+                plot_functions.append(('template', [plot.template]))
+            plot_functions.append(('plotOrder', [str(i + 1)]))
+
+            initial_values = plot_class.get_initial_values(plot_gm)
+            for attr in plot_class.gm_attributes:
+                if attr == 'Marker' and plot_type == 'Taylordiagram':
+                    #pickle the marker object
+                    plot_functions.append((attr,[pickle.dumps(getattr(initial_values,attr))]))
+                else:
+                    plot_functions.append((attr,[getattr(initial_values,attr)]))
+
+            source.append("gm%s = vcs.get%s('%s')" % (
+                          plot_type, plot_type.lower(), plot_gm))
+            source.append("args = []")
+            for varname in plot.variables:
+                source.append("args.append(%s)" % varname)
+
+            # FIXME: Colormap?
+
+            # FIXME: plotApps thing
+
+            # FIXME: gm attributes
+
+            source.append("kwargs = {}")
+            source.append("kwargs['cdmsfile'] = cdmsfile.id")
+            source.append("args.append(gm%s)" % plot_type)
+            source.append("canvas.plot(*args, **kwargs)")
+
+        source.append("canvas.interact()")
+
+        # CDMSSource module
+        source = '\n'.join(source + [])
+        source_module = cls.make_module_from_python_source(controller,
+                                                           source, CDMSSource)
+
+        # CellLocation module
         loc_module = controller.create_module_from_descriptor(
             reg.get_descriptor_by_name('edu.utah.sci.vistrails.spreadsheet',  'CellLocation'))
         functions = controller.create_functions(loc_module,
@@ -356,16 +399,19 @@ class CDMSPipelineHelper(PlotPipelineHelper):
         for f in functions:
             loc_module.add_function(f)
         loc_conn = controller.create_connection(loc_module, 'self',
-                                                cell_module, 'Location')
-        ops.extend([('add', loc_module),
-                    ('add', loc_conn)])
-        
+                                                source_module, 'Location')
+
+        ops = [('add', source_module),
+               ('add', loc_module),
+               ('add', loc_conn)]
+
+        # Layout
         layout_ops = controller.layout_modules_ops(
                 preserve_order=True, 
                 no_gaps=True, 
-                new_modules=var_modules + plot_modules + [cell_module, loc_module],
-                new_connections=conns + [loc_conn])
-            
+                new_modules=[source_module, loc_module],
+                new_connections=[loc_conn])
+
         action = core.db.action.create_action(ops + layout_ops)
         controller.change_selected_version(version)
         controller.add_new_action(action)

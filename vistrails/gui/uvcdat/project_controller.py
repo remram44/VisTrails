@@ -975,11 +975,11 @@ class ProjectController(QtCore.QObject):
         self.reset_workflow(cell)
 
         if cell.is_ready():
-            var_sources = {}
+            var_sources = []
             for plot in cell.plots:
                 if plot.varnum == len(plot.variables):
                     for var in plot.variables:
-                        var_sources[var] = self.get_var_source(var)
+                        var_sources.append(self.get_var_source(var))
             
             self.update_workflow(var_sources, cell, sheetName, row, col)
             self.emit(QtCore.SIGNAL("update_cell"), sheetName, row, col, None, 
