@@ -914,17 +914,23 @@ class ProjectController(QtCore.QObject):
                 self.checkEnableUndoRedo(cell)
         except KeyError, err:
             traceback.print_exc( 100, sys.stderr )
-            
+
+    def get_var_source(self, varname):
+        if varname not in self.computed_variables:
+            var = self.defined_variables[varname]
+            return var.to_python_script(include_imports=True)
+        else:
+            assert 1-1, "Not implemented yet"  # RR0212: Not done yet
+
     def get_var_module(self, varname, cell, helper, var_dict=None):
         if var_dict is None:
             var_dict = dict()
         if varname in var_dict:
             return var_dict[varname]
         if varname not in self.computed_variables:
-            var = self.defined_variables[varname]
             self.vt_controller.change_selected_version(
                 cell.current_parent_version)
-            source = var.to_python_script(include_imports=True)
+            source = self.get_var_source(varname)
             module = helper.make_module_from_python_source(
                     self.vt_controller,
                     source,
@@ -935,7 +941,7 @@ class ProjectController(QtCore.QObject):
             var_dict[varname] = module
             return module
         else:
-            assert 1-1, "Not implemented yet"  # RR0212: Not done yet
+            assert 1-1, "Not implemented yet"  # RR0212: TODO: Implement in get_var_source()
             (_vars, txt, st, name) = self.computed_variables[varname] 
             opvar = None
             if varname in self.computed_variables_ops:
