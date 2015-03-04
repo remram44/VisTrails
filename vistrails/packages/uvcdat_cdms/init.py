@@ -1301,6 +1301,8 @@ class CDMSSource(CodeRunnerMixin, SpreadsheetCell):
         self.run_code(s, use_input=True, use_output=True,
                       environment={'canvas': self.widget.canvas})
 
+        # RR0212: TODO: Get the plots somehow, and set them on self.widget
+
 class QCDATWidget(QVTKWidget):
     """ QCDATWidget is the spreadsheet cell widget where the plots are displayed.
     The widget interacts with the underlying C++, VCSQtManager through SIP.
@@ -1573,7 +1575,7 @@ class QCDATWidgetToolBar(QCellToolBar):
             pass
         
         if use_vcs_toolbar:
-            if cell.inputPorts[0][0].var.var.rank()>2:
+            if cell.inputPorts[0] and cell.inputPorts[0][0].var.var.rank()>2:
                 self.prevAction=QCDATWidgetPrev(self)
                 self.prevAction.setEnabled(False)
                 self.appendAction(self.prevAction)
