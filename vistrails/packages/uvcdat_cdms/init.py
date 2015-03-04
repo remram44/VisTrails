@@ -1287,6 +1287,10 @@ class CDMSSource(CodeRunnerMixin, SpreadsheetCell):
     """
     _input_ports = expand_port_specs([("source", "basic:String", False)])
 
+    def __init__(self):
+        CodeRunnerMixin.__init__(self)
+        SpreadsheetCell.__init__(self)
+
     def compute(self):
         # Create the widget with no plots
         self.widget = self.displayAndWait(QCDATWidget, ([],))
