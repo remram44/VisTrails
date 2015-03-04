@@ -997,13 +997,11 @@ class ProjectController(QtCore.QObject):
                     for var in plot.variables:
                         var_sources[var] = self.get_var_source(var)
             
-            self.update_workflow(var_sources, cell, sheetName, row, col,
-                                 reuse_workflow)
+            self.update_workflow(var_sources, cell, sheetName, row, col)
             self.emit(QtCore.SIGNAL("update_cell"), sheetName, row, col, None, 
                       None, cell.plots[0].package, cell.current_parent_version)
 
-    def update_workflow(self, var_sources, cell, sheetName, row, column,
-                        reuse_workflow=False):
+    def update_workflow(self, var_sources, cell, sheetName, row, column):
         
         #only build pipeline for plots that have all needed vars
         ready_plots = []
@@ -1014,30 +1012,11 @@ class ProjectController(QtCore.QObject):
         
         #Assuming that all plots in a cell are from the same package
         helper = self.plot_manager.get_plot_helper(ready_plots[0].package)
-        
-        if not reuse_workflow:
-            action = helper.build_plot_pipeline_action(self.vt_controller, 
-                                                       cell.current_parent_version, 
-                                                       var_sources, ready_plots,
-                                                       row, column)
-        else:
-            try:
-                action = helper.update_plot_pipeline_action(self.vt_controller, 
-                                                            cell.current_parent_version,
-                                                            var_sources, ready_plots,
-                                                            row, column)
-            except UnimplementedException:
-                # the pipeline helper does not support replacing variables.
-                # we will call build_plot_pipeline_action but need to reset the workflow first
-                self.reset_workflow(cell)
-                action = helper.build_plot_pipeline_action(self.vt_controller, 
-                                                       cell.current_parent_version, 
-                                                       var_sources, ready_plots,
-                                                       row, column)
-        #print '### setting row/column:', row, column
-        #notice that at this point the action was already performed by the helper
-        # we need only to update the current parent version of the cell and 
-        # execute the workflow if necessary.
+
+        action = helper.build_plot_pipeline_action(self.vt_controller,
+                                                   cell.current_parent_version,
+                                                   var_sources, ready_plots,
+                                                   row, column)
         
         if action is not None:
             cell.current_parent_version = action.id
