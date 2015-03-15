@@ -1034,7 +1034,7 @@ class CDMS3DPlot(Plot, NotCacheable):
         return module        
     
     @classmethod
-    def from_module(klass, module):
+    def from_module(klass, module):  # RR0212: rewrite for script
         from pipeline_helper import CDMSPipelineHelper
         plot = klass()
         plot.graphics_method_name = CDMSPipelineHelper.get_graphics_method_name_from_module(module)
@@ -1189,7 +1189,7 @@ class CDMSPlot(Plot, NotCacheable):
         return module        
     
     @classmethod
-    def from_module(klass, module):
+    def from_module(klass, module):  # RR0212: rewrite for script
         from pipeline_helper import CDMSPipelineHelper
         plot = klass()
         plot.graphics_method_name = CDMSPipelineHelper.get_graphics_method_name_from_module(module)
